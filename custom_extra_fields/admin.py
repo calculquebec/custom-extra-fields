@@ -17,21 +17,18 @@ class CustomExtraFieldsAdmin(admin.ModelAdmin):
     list_display = (
         "id",
         "user_username",
-        "nickname",
+        "position",
         "wants_newsletter",
         "favorite_language",
-        "interests",
     )
 
     search_fields = (
         "user__username",
         "user__email",
-        "nickname",
     )
 
     fieldsets = (
-        (_("User Information"), {"fields": ("user", "nickname")}),
-        (_("Personal Information"), {"fields": ("interests",)}),
+        (_("User Information"), {"fields": ("user", "position")}),
         (_("Preferences"), {"fields": ("favorite_language", "wants_newsletter")}),
     )
 

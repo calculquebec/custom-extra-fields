@@ -3,7 +3,6 @@ Database models for custom_extra_fields.
 """
 
 from django.contrib.auth.models import User
-from django.core.validators import MinLengthValidator
 from django.db import models
 from django.utils.translation import gettext_lazy as _
 
@@ -15,24 +14,19 @@ class CustomExtraFields(models.Model):
 
     user = models.OneToOneField(User, null=True, on_delete=models.CASCADE)
 
-    nickname = models.CharField(
+    position = models.CharField(
         blank=True,
         max_length=50,
-        validators=[MinLengthValidator(3)],
-        verbose_name=_("Nickname"),
-    )
-
-    birthdate = models.CharField(
-        blank=True,
-        max_length=10,
-        verbose_name=_("Date of birth"),
-        help_text=_("Use the format YYYY/MM/DD."),
-    )
-
-    interests = models.TextField(
-        blank=True,
-        verbose_name=_("Interests"),
-        help_text=_("Tell us about your hobbies and interests."),
+        choices=[
+            ("undergraduate_student", _("Étudiant-e au premier cycle")),
+            ("masters_student", _("Étudiant-e à la maîtrise")),
+            ("doctoral_student", _("Étudiant-e au doctorat")),
+            ("postdoctoral_fellow", _("Stagiaire post-doctoral")),
+            ("professor", _("Professeur-e")),
+            ("research_professional", _("Professionnel-le de recherche")),
+            ("other", _("Autre")),
+        ],
+        verbose_name=_("Position"),
     )
 
     wants_newsletter = models.BooleanField(
