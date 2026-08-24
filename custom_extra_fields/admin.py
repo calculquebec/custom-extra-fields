@@ -18,6 +18,7 @@ class CustomExtraFieldsAdmin(admin.ModelAdmin):
         "id",
         "user_username",
         "position",
+        "research_area",
         "wants_newsletter",
         "favorite_language",
     )
@@ -28,7 +29,7 @@ class CustomExtraFieldsAdmin(admin.ModelAdmin):
     )
 
     fieldsets = (
-        (_("User Information"), {"fields": ("user", "position")}),
+        (_("User Information"), {"fields": ("user", "position", "research_area")}),
         (_("Preferences"), {"fields": ("favorite_language", "wants_newsletter")}),
     )
 

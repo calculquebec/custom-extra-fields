@@ -29,6 +29,20 @@ class CustomExtraFields(models.Model):
         verbose_name=_("Position"),
     )
 
+    research_area = models.CharField(
+        blank=True,
+        max_length=50,
+        choices=[
+            ("natural_sciences", _("Sciences naturelles")),
+            ("engineering_and_technology", _("Génie et technologies")),
+            ("medical_health_and_life_sciences", _("Sciences médicales, de la santé et de la vie")),
+            ("agricultural_and_veterinary_sciences", _("Sciences agricoles et vétérinaires")),
+            ("social_sciences", _("Sciences sociales")),
+            ("humanities_and_the_arts", _("Sciences humaines et arts")),
+        ],
+        verbose_name=_("Research area"),
+    )
+
     wants_newsletter = models.BooleanField(
         default=False,
         verbose_name=_("Subscribe to newsletter"),
