@@ -20,7 +20,6 @@ class CustomExtraFieldsAdmin(admin.ModelAdmin):
         "position",
         "research_area",
         "wants_newsletter",
-        "favorite_language",
     )
 
     search_fields = (
@@ -30,7 +29,7 @@ class CustomExtraFieldsAdmin(admin.ModelAdmin):
 
     fieldsets = (
         (_("User Information"), {"fields": ("user", "position", "research_area")}),
-        (_("Preferences"), {"fields": ("favorite_language", "wants_newsletter")}),
+        (_("Preferences"), {"fields": ("wants_newsletter",)}),
     )
 
     def user_username(self, obj):

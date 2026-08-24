@@ -48,18 +48,6 @@ class CustomExtraFields(models.Model):
         verbose_name=_("Subscribe to newsletter"),
     )
 
-    favorite_language = models.CharField(
-        blank=True,
-        max_length=50,
-        choices=[
-            ("python", "Python"),
-            ("javascript", "JavaScript"),
-            ("java", "Java"),
-            ("go", "Go"),
-        ],
-        verbose_name=_("Favorite programming language"),
-    )
-
     def __str__(self):
         """
         Get a string representation of this model instance.
