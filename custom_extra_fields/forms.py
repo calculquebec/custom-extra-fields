@@ -19,12 +19,14 @@ class CustomExtraFieldsForm(ModelForm):
         super().__init__(*args, **kwargs)
 
         # Check box field
-        self.fields["wants_newsletter"].help_text = "Subscribe to our newsletter to get the latest news and updates."
-        self.fields["wants_newsletter"].label = "Subscribe to newsletter?"
+        self.fields["wants_newsletter"].help_text = "Abonnez-vous à notre infolettre pour recevoir les dernières informations sur le contenu d'evolo"
+        self.fields["wants_newsletter"].label = "M'abonner à l'infolettre"
 
         # Select fields
-        self.fields["position"].help_text = "Select your position."
-        self.fields["research_area"].help_text = "Select your research area."
+        self.fields["position"].help_text = "Choisissez votre statut académique"
+        self.fields["position"].label = "Statut académique"
+        self.fields["research_area"].help_text = "Choisissez votre domaine de recherche."
+        self.fields["research_area"].label = "Domaine de recherche"
 
     class Meta:
         model = CustomExtraFields
