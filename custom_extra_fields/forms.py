@@ -55,7 +55,7 @@ class CustomExtraFieldsForm(ModelForm):
     # Must be forms.BooleanField (not a subclass) so OpenedX's FIELD_TYPE_MAP
     # exact-class lookup resolves it to "checkbox" correctly.
     sla_acceptance = forms.BooleanField(
-        required=True,
+        required=False,
         widget=SlaAcceptanceWidget,
         label=_("SLA acceptance"),
         help_text=_("You must accept the Service Level Agreement to register."),

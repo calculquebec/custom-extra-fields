@@ -1,0 +1,59 @@
+{% load i18n %}
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>{% trans "Service Level Agreement — Updated" %}</title>
+    <style>
+        body { font-family: sans-serif; max-width: 640px; margin: 4rem auto; padding: 0 1rem; color: #222; }
+        h1   { font-size: 1.5rem; margin-bottom: 0.25rem; }
+        .version { color: #666; font-size: 0.9rem; margin-bottom: 1.5rem; }
+        .notice  { background: #fff8e1; border-left: 4px solid #f9a825; padding: 0.75rem 1rem; margin-bottom: 1.5rem; border-radius: 2px; }
+        .form-row { display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 1rem; }
+        .form-row input[type=checkbox] { margin-top: 3px; flex-shrink: 0; }
+        .errorlist { color: #c00; list-style: none; padding: 0; margin: 0 0 0.75rem; font-size: 0.9rem; }
+        button { background: #0075b4; color: #fff; border: none; padding: 0.6rem 1.4rem; border-radius: 4px; font-size: 1rem; cursor: pointer; }
+        button:hover { background: #005f93; }
+    </style>
+</head>
+<body>
+
+    <h1>{% trans "Updated Service Level Agreement" %}</h1>
+    <p class="version">{% blocktrans with version=sla_version %}Version {{ version }}{% endblocktrans %}</p>
+
+    <div class="notice">
+        {% blocktrans with url=sla_url version=sla_version %}
+            Our Service Level Agreement has been updated. Please review
+            <a href="{{ url }}" target="_blank" rel="noopener noreferrer">SLA v{{ version }}</a>
+            and accept it to continue using the platform.
+        {% endblocktrans %}
+    </div>
+
+    <form method="post">
+        {% csrf_token %}
+        <input type="hidden" name="next" value="{{ next }}">
+
+        {% if form.accepted.errors %}
+            <ul class="errorlist">
+                {% for error in form.accepted.errors %}
+                    <li>{{ error }}</li>
+                {% endfor %}
+            </ul>
+        {% endif %}
+
+        <div class="form-row">
+            {{ form.accepted }}
+            <label for="{{ form.accepted.id_for_label }}">
+                {% blocktrans with url=sla_url version=sla_version %}
+                    I have read and accept the
+                    <a href="{{ url }}" target="_blank" rel="noopener noreferrer">Service Level Agreement v{{ version }}</a>.
+                {% endblocktrans %}
+            </label>
+        </div>
+
+        <button type="submit">{% trans "Accept and continue" %}</button>
+    </form>
+
+</body>
+</html>
