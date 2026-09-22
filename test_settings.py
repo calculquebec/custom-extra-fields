@@ -61,3 +61,9 @@ TEMPLATES = [
         },
     }
 ]
+
+# SLA configuration used during tests.
+# In production these are set in the platform's Django settings.
+CUSTOM_EXTRA_FIELDS_SLA_URL = "https://example.com/sla/v1.0"
+CUSTOM_EXTRA_FIELDS_SLA_VERSION = "1.0"
+

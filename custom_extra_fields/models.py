@@ -2,9 +2,50 @@
 Database models for custom_extra_fields.
 """
 
-from django.contrib.auth.models import User
+from django.contrib.auth import get_user_model
 from django.db import models
 from django.utils.translation import gettext_lazy as _
+
+User = get_user_model()
+
+
+class UserSlaAcceptance(models.Model):
+    """
+    Records that a user has accepted a specific version of the SLA.
+
+    The ``sla_version`` and ``sla_url`` fields capture the values that were
+    active in settings at the moment of acceptance, so the audit trail remains
+    accurate even when settings change later.
+    """
+
+    user = models.OneToOneField(
+        User,
+        on_delete=models.CASCADE,
+        related_name="sla_acceptance",
+        verbose_name=_("User"),
+    )
+    accepted_at = models.DateTimeField(
+        auto_now_add=True,
+        verbose_name=_("Accepted at"),
+    )
+    sla_version = models.CharField(
+        max_length=50,
+        verbose_name=_("SLA version"),
+        help_text=_("Version of the SLA that was accepted (copied from settings at acceptance time)."),
+    )
+    sla_url = models.URLField(
+        max_length=500,
+        verbose_name=_("SLA URL"),
+        help_text=_("URL of the SLA document that was accepted (copied from settings at acceptance time)."),
+    )
+
+    class Meta:
+        db_table = "custom_extra_fields_user_sla_acceptance"
+        verbose_name = _("User SLA acceptance")
+        verbose_name_plural = _("User SLA acceptances")
+
+    def __str__(self):
+        return f"{self.user.username} accepted SLA v{self.sla_version} on {self.accepted_at}"
 
 
 class CustomExtraFields(models.Model):
