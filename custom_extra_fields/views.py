@@ -80,6 +80,25 @@ def sla_accept_view(request):
         if is_json:
             return JsonResponse({"success": False, "error": "SLA acceptance is required."}, status=400)
 
+    # GET request with JSON Accept header (status query from MFE)
+    is_json = (
+        request.content_type == "application/json"
+        or "application/json" in request.headers.get("accept", "")
+    )
+    if is_json:
+        has_accepted = False
+        if request.user.is_authenticated and sla_version:
+            try:
+                has_accepted = (request.user.sla_acceptance.sla_version == sla_version)
+            except Exception:  # pylint: disable=broad-except
+                has_accepted = False
+        return JsonResponse({
+            "is_authenticated": request.user.is_authenticated,
+            "has_accepted": has_accepted,
+            "sla_version": sla_version,
+            "sla_url": sla_url,
+        })
+
     # GET request: if an SLA page URL is configured (e.g. MFE static-pages), redirect to it
     if sla_url and not request.path.startswith(sla_url):
         separator = "&" if "?" in sla_url else "?"

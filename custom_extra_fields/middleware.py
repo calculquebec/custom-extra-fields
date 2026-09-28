@@ -22,6 +22,10 @@ EXEMPT_URL_PREFIXES = (
     "/admin/",         # Django admin has its own auth
     "/static/",        # static assets
     "/media/",         # media files
+    "/theming/",       # theme assets (logos, images, theme CSS)
+    "/asset/",         # course/site assets
+    "/assets/",        # assets
+    "/c4x/",           # content assets
     "/favicon.ico",    # browser favicon
     "/api/",           # REST/API clients cannot follow an HTML redirect
     "/user_api/",      # User API endpoints (registration, account settings)
@@ -31,6 +35,13 @@ EXEMPT_URL_PREFIXES = (
     "/heartbeat",      # health check endpoints
     "/i18n/",          # language switcher
     "/csrf/",          # CSRF endpoints
+)
+
+STATIC_EXTENSIONS = (
+    ".png", ".jpg", ".jpeg", ".gif", ".svg", ".ico", ".webp", ".avif",
+    ".css", ".js", ".map",
+    ".woff", ".woff2", ".ttf", ".eot", ".otf",
+    ".mp4", ".webm", ".mp3", ".pdf",
 )
 
 
@@ -63,8 +74,17 @@ class SlaAcceptanceMiddleware(MiddlewareMixin):
         ):
             return None
 
+        # Do not redirect browser subresource requests (images, styles, scripts, fonts)
+        if request.headers.get("sec-fetch-dest") in ("image", "style", "script", "font"):
+            return None
+
         path = request.path_info
         if any(path.startswith(prefix) for prefix in EXEMPT_URL_PREFIXES):
+            return None
+
+        # Never intercept static asset or image file requests by extension
+        path_lower = path.lower()
+        if any(path_lower.endswith(ext) for ext in STATIC_EXTENSIONS):
             return None
 
         current_version = get_sla_version()
