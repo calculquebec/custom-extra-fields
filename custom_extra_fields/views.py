@@ -1,11 +1,13 @@
-"""
-Views for custom_extra_fields.
-"""
+import json
+from urllib.parse import quote
 
 from django import forms
 from django.contrib.auth.decorators import login_required
+from django.http import JsonResponse
 from django.shortcuts import redirect, render
+from django.utils import translation
 from django.utils.translation import gettext_lazy as _
+from django.views.decorators.csrf import csrf_exempt
 
 from custom_extra_fields.conf import get_sla_url, get_sla_version
 from custom_extra_fields.models import UserSlaAcceptance
@@ -25,22 +27,45 @@ class SlaAcceptanceForm(forms.Form):
     )
 
 
+@csrf_exempt
 @login_required
 def sla_accept_view(request):
     """
-    GET  — display the SLA acceptance form with a link to the current document.
-    POST — validate the form, persist the acceptance record, redirect to ``next``.
-
-    The acceptance record is stored via ``update_or_create`` so that re-accepting
-    a new version simply overwrites the previous one (latest version only).
+    GET  — Redirect to the frontend SLA page (get_sla_url()) with ?next=...,
+           or render the fallback HTML template if no SLA URL is configured.
+    POST — Validate acceptance (from JSON payload or form-encoded POST),
+           persist UserSlaAcceptance, and return JSON or redirect to ``next``.
     """
     next_url = request.GET.get("next") or request.POST.get("next") or "/"
     sla_url = get_sla_url()
     sla_version = get_sla_version()
 
+    # Respect language preference cookie (e.g. 'fr' or 'fr-ca')
+    lang_pref = request.COOKIES.get("openedx-language-preference", "")
+    if lang_pref.lower().startswith("fr"):
+        translation.activate("fr")
+
     if request.method == "POST":
-        form = SlaAcceptanceForm(request.POST)
-        if form.is_valid():
+        accepted = False
+        is_json = (
+            request.content_type == "application/json"
+            or "application/json" in request.headers.get("accept", "")
+        )
+
+        if request.content_type == "application/json":
+            try:
+                body_data = json.loads(request.body.decode("utf-8"))
+            except Exception:  # pylint: disable=broad-except
+                body_data = {}
+            accepted = bool(body_data.get("accepted"))
+            next_url = body_data.get("next") or next_url
+        else:
+            form = SlaAcceptanceForm(request.POST)
+            if form.is_valid():
+                accepted = True
+            next_url = request.POST.get("next") or next_url
+
+        if accepted:
             UserSlaAcceptance.objects.update_or_create(
                 user=request.user,
                 defaults={
@@ -48,10 +73,19 @@ def sla_accept_view(request):
                     "sla_url": sla_url,
                 },
             )
+            if is_json:
+                return JsonResponse({"success": True, "redirect_url": next_url})
             return redirect(next_url)
-    else:
-        form = SlaAcceptanceForm()
 
+        if is_json:
+            return JsonResponse({"success": False, "error": "SLA acceptance is required."}, status=400)
+
+    # GET request: if an SLA page URL is configured (e.g. MFE static-pages), redirect to it
+    if sla_url and not request.path.startswith(sla_url):
+        separator = "&" if "?" in sla_url else "?"
+        return redirect(f"{sla_url}{separator}next={quote(next_url)}")
+
+    form = SlaAcceptanceForm()
     return render(
         request,
         "custom_extra_fields/sla_accept.html",
@@ -60,5 +94,6 @@ def sla_accept_view(request):
             "sla_url": sla_url,
             "sla_version": sla_version,
             "next": next_url,
+            "is_french": lang_pref.lower().startswith("fr"),
         },
     )

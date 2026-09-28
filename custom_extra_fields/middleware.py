@@ -2,15 +2,20 @@
 Middleware for custom_extra_fields.
 """
 
+from urllib.parse import quote
+
 from django.shortcuts import redirect
 from django.utils.deprecation import MiddlewareMixin
 
-from custom_extra_fields.conf import get_sla_version
+from custom_extra_fields.conf import get_sla_url, get_sla_version
 
 # Paths that must never be intercepted.
 # Add any additional paths your deployment needs (e.g. password-reset URLs).
 EXEMPT_URL_PREFIXES = (
-    "/sla/",           # the acceptance page itself — avoids redirect loop
+    "/sla",            # covers /sla, /sla/, /sla/accept/
+    "/ans",            # covers /ans, /ans/
+    "/static-pages/sla",
+    "/static-pages/ans",
     "/logout",         # always allow logout
     "/login",          # login endpoints and pages
     "/login_refresh",  # MFE JWT cookie refresh endpoint
@@ -68,7 +73,9 @@ class SlaAcceptanceMiddleware(MiddlewareMixin):
             return None
 
         if not self._has_accepted_current_version(request.user, current_version):
-            acceptance_url = f"/sla/accept/?next={path}"
+            sla_url = get_sla_url() or "/sla"
+            separator = "&" if "?" in sla_url else "?"
+            acceptance_url = f"{sla_url}{separator}next={quote(path)}"
             return redirect(acceptance_url)
 
         return None

@@ -4,56 +4,72 @@
 <head>
     <meta charset="UTF-8">
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
-    <title>{% trans "Service Level Agreement — Updated" %}</title>
+    <title>{% if is_french %}Accord de niveau de service — Mise à jour{% else %}{% trans "Service Level Agreement — Updated" %}{% endif %}</title>
     <style>
-        body { font-family: sans-serif; max-width: 640px; margin: 4rem auto; padding: 0 1rem; color: #222; }
-        h1   { font-size: 1.5rem; margin-bottom: 0.25rem; }
-        .version { color: #666; font-size: 0.9rem; margin-bottom: 1.5rem; }
-        .notice  { background: #fff8e1; border-left: 4px solid #f9a825; padding: 0.75rem 1rem; margin-bottom: 1.5rem; border-radius: 2px; }
-        .form-row { display: flex; align-items: flex-start; gap: 0.5rem; margin-bottom: 1rem; }
-        .form-row input[type=checkbox] { margin-top: 3px; flex-shrink: 0; }
-        .errorlist { color: #c00; list-style: none; padding: 0; margin: 0 0 0.75rem; font-size: 0.9rem; }
-        button { background: #0075b4; color: #fff; border: none; padding: 0.6rem 1.4rem; border-radius: 4px; font-size: 1rem; cursor: pointer; }
-        button:hover { background: #005f93; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif; max-width: 640px; margin: 4rem auto; padding: 0 1rem; color: #1e293b; background: #f8fafc; }
+        .card { background: #fff; border: 1px solid #e2e8f0; border-radius: 12px; padding: 2rem; box-shadow: 0 4px 16px rgba(0,0,0,0.06); }
+        h1   { font-size: 1.6rem; margin-top: 0; margin-bottom: 0.25rem; color: #052147; }
+        .version { color: #64748b; font-size: 0.9rem; margin-bottom: 1.5rem; }
+        .notice  { background: #fff8e1; border-left: 4px solid #f9a825; padding: 0.85rem 1rem; margin-bottom: 1.5rem; border-radius: 4px; line-height: 1.5; color: #795548; font-size: 0.95rem; }
+        .notice a { color: #0052cc; font-weight: 600; text-decoration: underline; }
+        .form-row { display: flex; align-items: flex-start; gap: 0.65rem; margin-bottom: 1.5rem; }
+        .form-row input[type=checkbox] { margin-top: 4px; width: 1.15rem; height: 1.15rem; flex-shrink: 0; accent-color: #0052cc; cursor: pointer; }
+        .form-row label { font-size: 0.95rem; line-height: 1.4; color: #334155; cursor: pointer; }
+        .errorlist { color: #dc2626; list-style: none; padding: 0; margin: 0 0 1rem; font-size: 0.9rem; }
+        button { background: #0052cc; color: #fff; border: none; padding: 0.75rem 1.6rem; border-radius: 6px; font-size: 1rem; font-weight: 600; cursor: pointer; transition: background 0.15s; }
+        button:hover { background: #0747a6; }
     </style>
 </head>
 <body>
 
-    <h1>{% trans "Updated Service Level Agreement" %}</h1>
-    <p class="version">{% blocktrans with version=sla_version %}Version {{ version }}{% endblocktrans %}</p>
+    <div class="card">
+        <h1>{% if is_french %}Accord de niveau de service{% else %}{% trans "Updated Service Level Agreement" %}{% endif %}</h1>
+        <p class="version">{% if is_french %}Version {{ sla_version }}{% else %}{% blocktrans with version=sla_version %}Version {{ version }}{% endblocktrans %}{% endif %}</p>
 
-    <div class="notice">
-        {% blocktrans with url=sla_url version=sla_version %}
-            Our Service Level Agreement has been updated. Please review
-            <a href="{{ url }}" target="_blank" rel="noopener noreferrer">SLA v{{ version }}</a>
-            and accept it to continue using the platform.
-        {% endblocktrans %}
-    </div>
-
-    <form method="post">
-        {% csrf_token %}
-        <input type="hidden" name="next" value="{{ next }}">
-
-        {% if form.accepted.errors %}
-            <ul class="errorlist">
-                {% for error in form.accepted.errors %}
-                    <li>{{ error }}</li>
-                {% endfor %}
-            </ul>
-        {% endif %}
-
-        <div class="form-row">
-            {{ form.accepted }}
-            <label for="{{ form.accepted.id_for_label }}">
+        <div class="notice">
+            {% if is_french %}
+                Notre accord de niveau de service a été mis à jour. Veuillez consulter
+                <a href="{{ sla_url }}" target="_blank" rel="noopener noreferrer">l'ANS v{{ sla_version }}</a>
+                et l'accepter pour continuer à utiliser la plateforme.
+            {% else %}
                 {% blocktrans with url=sla_url version=sla_version %}
-                    I have read and accept the
-                    <a href="{{ url }}" target="_blank" rel="noopener noreferrer">Service Level Agreement v{{ version }}</a>.
+                    Our Service Level Agreement has been updated. Please review
+                    <a href="{{ url }}" target="_blank" rel="noopener noreferrer">SLA v{{ version }}</a>
+                    and accept it to continue using the platform.
                 {% endblocktrans %}
-            </label>
+            {% endif %}
         </div>
 
-        <button type="submit">{% trans "Accept and continue" %}</button>
-    </form>
+        <form method="post">
+            {% csrf_token %}
+            <input type="hidden" name="next" value="{{ next }}">
+
+            {% if form.accepted.errors %}
+                <ul class="errorlist">
+                    {% for error in form.accepted.errors %}
+                        <li>{% if is_french %}Vous devez accepter l'ANS pour continuer.{% else %}{{ error }}{% endif %}</li>
+                    {% endfor %}
+                </ul>
+            {% endif %}
+
+            <div class="form-row">
+                {{ form.accepted }}
+                <label for="{{ form.accepted.id_for_label }}">
+                    {% if is_french %}
+                        J'ai lu et j'accepte l'
+                        <a href="{{ sla_url }}" target="_blank" rel="noopener noreferrer">accord de niveau de service v{{ sla_version }}</a>.
+                    {% else %}
+                        {% blocktrans with url=sla_url version=sla_version %}
+                            I have read and accept the
+                            <a href="{{ url }}" target="_blank" rel="noopener noreferrer">Service Level Agreement v{{ version }}</a>.
+                        {% endblocktrans %}
+                    {% endif %}
+                </label>
+            </div>
+
+            <button type="submit">{% if is_french %}Accepter et continuer{% else %}{% trans "Accept and continue" %}{% endif %}</button>
+        </form>
+    </div>
 
 </body>
 </html>
