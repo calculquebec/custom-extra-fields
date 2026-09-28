@@ -94,3 +94,27 @@ class CustomExtraFields(models.Model):
         Get a string representation of this model instance.
         """
         return f"<CustomExtraFields, ID: {self.id}>"
+
+
+from django.db.models.signals import post_save
+from django.dispatch import receiver
+
+
+@receiver(post_save, sender=CustomExtraFields)
+def save_sla_acceptance_on_profile_save(sender, instance, **kwargs):
+    """
+    Ensure UserSlaAcceptance is created if sla_acceptance was accepted on the form,
+    even when the form was saved with commit=False before user assignment.
+    """
+    if getattr(instance, "_sla_accepted", False) and instance.user:
+        from custom_extra_fields.conf import get_sla_url, get_sla_version
+
+        sla_version = get_sla_version()
+        if sla_version:
+            UserSlaAcceptance.objects.update_or_create(
+                user=instance.user,
+                defaults={
+                    "sla_version": sla_version,
+                    "sla_url": get_sla_url(),
+                },
+            )

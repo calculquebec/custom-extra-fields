@@ -10,15 +10,22 @@ from custom_extra_fields.conf import get_sla_version
 # Paths that must never be intercepted.
 # Add any additional paths your deployment needs (e.g. password-reset URLs).
 EXEMPT_URL_PREFIXES = (
-    "/sla/",        # the acceptance page itself — avoids redirect loop
-    "/logout",      # always allow logout
-    "/admin/",      # Django admin has its own auth
-    "/static/",     # static assets
-    "/api/",        # REST/API clients cannot follow an HTML redirect
-    "/auth/",       # Python Social Auth login + OIDC callback URLs;
-                    # an already-authenticated user can hit these during
-                    # silent re-auth or token refresh — intercepting them
-                    # would break the OIDC flow mid-flight.
+    "/sla/",           # the acceptance page itself — avoids redirect loop
+    "/logout",         # always allow logout
+    "/login",          # login endpoints and pages
+    "/login_refresh",  # MFE JWT cookie refresh endpoint
+    "/admin/",         # Django admin has its own auth
+    "/static/",        # static assets
+    "/media/",         # media files
+    "/favicon.ico",    # browser favicon
+    "/api/",           # REST/API clients cannot follow an HTML redirect
+    "/user_api/",      # User API endpoints (registration, account settings)
+    "/oauth2/",        # OAuth2 token and authorization endpoints
+    "/auth/",          # Python Social Auth login + OIDC callback URLs
+    "/authn/",         # Auth MFE routes
+    "/heartbeat",      # health check endpoints
+    "/i18n/",          # language switcher
+    "/csrf/",          # CSRF endpoints
 )
 
 
@@ -36,6 +43,19 @@ class SlaAcceptanceMiddleware(MiddlewareMixin):
 
     def process_request(self, request):
         if not request.user.is_authenticated:
+            return None
+
+        # Only redirect standard browser GET/HEAD page navigations.
+        # Intercepting POST/PUT/DELETE or AJAX/API calls breaks form submissions,
+        # token refresh flows (e.g. /login_refresh), and background data fetches.
+        if request.method not in ("GET", "HEAD"):
+            return None
+
+        # Do not redirect AJAX or JSON-accepting API requests
+        if (
+            request.headers.get("x-requested-with") == "XMLHttpRequest"
+            or "application/json" in request.headers.get("accept", "")
+        ):
             return None
 
         path = request.path_info

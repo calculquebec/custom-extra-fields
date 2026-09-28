@@ -8,7 +8,7 @@ from django.utils.safestring import mark_safe
 from django.utils.translation import gettext_lazy as _
 
 from custom_extra_fields.conf import get_sla_url, get_sla_version
-from custom_extra_fields.models import CustomExtraFields
+from custom_extra_fields.models import CustomExtraFields, UserSlaAcceptance
 
 
 class SlaAcceptanceWidget(forms.CheckboxInput):
@@ -76,6 +76,23 @@ class CustomExtraFieldsForm(ModelForm):
         self.fields["position"].label = "Statut académique"
         self.fields["research_area"].help_text = "Choisissez votre domaine de recherche."
         self.fields["research_area"].label = "Domaine de recherche"
+
+    def save(self, commit=True):
+        instance = super().save(commit=commit)
+        sla_accepted = self.cleaned_data.get("sla_acceptance")
+        if sla_accepted:
+            instance._sla_accepted = True
+            user = getattr(instance, "user", None)
+            sla_version = get_sla_version()
+            if commit and user and sla_version:
+                UserSlaAcceptance.objects.update_or_create(
+                    user=user,
+                    defaults={
+                        "sla_version": sla_version,
+                        "sla_url": get_sla_url(),
+                    },
+                )
+        return instance
 
     class Meta:
         model = CustomExtraFields
