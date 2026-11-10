@@ -2,10 +2,13 @@
 URLs for custom_extra_fields.
 """
 
-from django.urls import re_path  # pylint: disable=unused-import
-from django.views.generic import TemplateView  # pylint: disable=unused-import
+from django.urls import path
+
+from custom_extra_fields.views import sla_accept_view
 
 urlpatterns = [
-    # TODO: Fill in URL patterns and views here.
-    # re_path(r'', TemplateView.as_view(template_name="custom_extra_fields/base.html")),
+    # Mounted at /sla/ via plugin_app regex r"^sla/"
+    path("accept/", sla_accept_view, name="sla_accept"),
+    # Also support direct inclusion at root without prefix
+    path("sla/accept/", sla_accept_view, name="sla_accept_root"),
 ]

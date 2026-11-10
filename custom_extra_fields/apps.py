@@ -12,4 +12,12 @@ class CustomExtraFieldsConfig(AppConfig):
 
     name = "custom_extra_fields"
     default_auto_field = "django.db.models.AutoField"
-    plugin_app = {}
+    plugin_app = {
+        "url_config": {
+            "lms.djangoapp": {
+                "namespace": "custom_extra_fields",
+                "regex": r"^sla/",
+                "relative_path": "urls",
+            },
+        },
+    }
